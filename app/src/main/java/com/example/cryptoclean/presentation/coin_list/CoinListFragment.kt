@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.cryptoclean.common.Resource
 import com.example.cryptoclean.databinding.FragmentCoinListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,19 +30,23 @@ class CoinListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.state.observe(requireActivity(), {
-            if (it.isLoading) Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT)
-                .show()
-            if (it.coins.isNotEmpty())
-                with(binding.rvCoins) {
-                    adapter = CoinsAdapter(it.coins)
+            when (it) {
+                is Resource.Success -> with(binding.rvCoins) {
+                    adapter = CoinsAdapter(it.data!!)
                     layoutManager = LinearLayoutManager(requireContext())
                 }
-
-            if (it.error.isNotEmpty()) Toast.makeText(
-                requireContext(),
-                it.error,
-                Toast.LENGTH_SHORT
-            ).show()
+                is Resource.Loading -> Toast.makeText(
+                    requireContext(),
+                    "Loading...",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+                is Resource.Error -> Toast.makeText(
+                    requireContext(),
+                    it.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         })
     }
 
